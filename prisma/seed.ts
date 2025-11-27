@@ -19,9 +19,10 @@ async function main() {
   })
   console.log('✓ Created demo user:', user.email)
 
-  // Create sample customers
+  // Create sample customers (all owned by demo user)
   const acmeCorp = await prisma.customer.create({
     data: {
+      userId: user.id,
       name: 'Acme Corporation',
       industry: 'Manufacturing',
       status: 'ACTIVE',
@@ -121,6 +122,7 @@ async function main() {
 
   const techStartup = await prisma.customer.create({
     data: {
+      userId: user.id,
       name: 'TechStartup Inc',
       industry: 'Software',
       status: 'PROSPECT',
@@ -161,6 +163,7 @@ async function main() {
 
   const globalRetail = await prisma.customer.create({
     data: {
+      userId: user.id,
       name: 'Global Retail Co',
       industry: 'Retail',
       status: 'ACTIVE',

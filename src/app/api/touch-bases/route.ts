@@ -24,7 +24,7 @@ export async function GET() {
       include: {
         contact: { include: { site: { include: { customer: true } } } },
       },
-      orderBy: { date: 'desc' },
+      orderBy: { createdAt: 'desc' },
     })
 
     return NextResponse.json(touchBases)
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     const validation = createTouchBaseSchema.safeParse(body)
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.errors },
+        { error: 'Validation failed', details: validation.error.issues },
         { status: 400 }
       )
     }

@@ -6,7 +6,7 @@ async function getTouchBases() {
     include: {
       contact: { include: { site: { include: { customer: true } } } },
     },
-    orderBy: { date: 'desc' },
+    orderBy: { createdAt: 'desc' },
   })
 }
 
@@ -51,23 +51,33 @@ export default async function FollowUpsPage() {
                   <p className="text-sm text-surface-500 mb-2">
                     {touchBase.contact.site.customer.name} • {touchBase.contact.site.name}
                   </p>
-                  <p className="text-sm text-surface-500 mb-2">
-                    {new Date(touchBase.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </p>
+                  {touchBase.followUpDate && (
+                    <p className="text-sm text-surface-500 mb-2">
+                      Follow-up: {new Date(touchBase.followUpDate).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  )}
+                  {touchBase.whereMet && (
+                    <p className="text-sm text-surface-500 mb-2">
+                      <strong>Where:</strong> {touchBase.whereMet}
+                    </p>
+                  )}
                   {touchBase.notes && (
                     <p className="text-sm text-surface-600 dark:text-surface-400 mb-2">
                       {touchBase.notes}
                     </p>
                   )}
-                  {touchBase.outcome && (
+                  {touchBase.conversationNotes && (
                     <p className="text-sm text-surface-500">
-                      <strong>Outcome:</strong> {touchBase.outcome}
+                      <strong>Notes:</strong> {touchBase.conversationNotes}
                     </p>
                   )}
+                  <span className={`text-xs px-2 py-1 rounded ${touchBase.done ? 'bg-success-100 text-success-700' : 'bg-warning-100 text-warning-700'}`}>
+                    {touchBase.done ? 'Completed' : 'Pending'}
+                  </span>
                 </div>
                 <Link
                   href={`/follow-ups/${touchBase.id}/edit`}

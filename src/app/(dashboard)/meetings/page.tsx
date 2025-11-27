@@ -46,7 +46,7 @@ export default async function MeetingsPage() {
                     href={`/meetings/${meeting.id}/edit`}
                     className="font-semibold text-primary-600 hover:text-primary-500"
                   >
-                    {meeting.title}
+                    {meeting.agenda || 'Meeting'}
                   </Link>
                   <p className="text-sm text-surface-500 mb-2">
                     {meeting.customer.name}

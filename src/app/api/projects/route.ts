@@ -22,7 +22,7 @@ export async function GET() {
       include: {
         site: { include: { customer: true } },
       },
-      orderBy: { status: 'asc' },
+      orderBy: { createdAt: 'desc' },
     })
 
     return NextResponse.json(projects)
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     const validation = createProjectSchema.safeParse(body)
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.errors },
+        { error: 'Validation failed', details: validation.error.issues },
         { status: 400 }
       )
     }
