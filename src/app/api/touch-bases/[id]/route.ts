@@ -1,0 +1,75 @@
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/db'
+
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const touchBase = await prisma.touchBase.findUnique({
+      where: { id: params.id },
+      include: {
+        contact: { include: { site: { include: { customer: true } } } },
+      },
+    })
+
+    if (!touchBase) {
+      return NextResponse.json({ error: 'Follow-up not found' }, { status: 404 })
+    }
+
+    return NextResponse.json(touchBase)
+  } catch (error) {
+    console.error('Get touch base error:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch follow-up' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const data = await req.json()
+
+    const touchBase = await prisma.touchBase.update({
+      where: { id: params.id },
+      data: {
+        date: new Date(data.date),
+        notes: data.notes || null,
+        outcome: data.outcome || null,
+        nextSteps: data.nextSteps || null,
+        contactId: data.contactId,
+      },
+    })
+
+    return NextResponse.json(touchBase)
+  } catch (error) {
+    console.error('Update touch base error:', error)
+    return NextResponse.json(
+      { error: 'Failed to update follow-up' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await prisma.touchBase.delete({
+      where: { id: params.id },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Delete touch base error:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete follow-up' },
+      { status: 500 }
+    )
+  }
+}

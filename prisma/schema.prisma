@@ -1,0 +1,284 @@
+// Prisma Schema for MyCRM - Account Planning CRM
+// 12 entities for managing B2B customer relationships
+// Note: Using String for enum-like fields since SQLite doesn't support native enums
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER (for NextAuth.js)
+// ============================================
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// CRM ENTITIES
+// ============================================
+
+model Customer {
+  id          String    @id @default(uuid())
+  name        String
+  industry    String?
+  status      String    @default("ACTIVE") // ACTIVE, INACTIVE, PROSPECT, ARCHIVED
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  strategy    Strategy?
+  sites       Site[]
+  goals       Goal[]
+  meetings    Meeting[]
+  tasks       Task[]
+  documents   Document[]
+  activities  ActivityLog[]
+
+  @@index([name])
+  @@index([status])
+}
+
+model Strategy {
+  id             String   @id @default(uuid())
+  customerId     String   @unique
+  overview       String?
+  currentStatus  String?
+  painPoints     String?  // JSON: Array of { title, description }
+  opportunities  String?  // JSON: Array of { title, description }
+  actionPlan     String?  // JSON: Array of { initiative, tasks[] }
+  nextSteps      String?  // JSON: Array of { step, dueDate }
+  onenoteLink    String?
+  updatedAt      DateTime @updatedAt
+
+  customer       Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model Site {
+  id          String    @id @default(uuid())
+  customerId  String
+  name        String
+  address     String?
+  city        String?
+  state       String?
+  competitors String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  contacts    Contact[]
+  pipelines   Pipeline[]
+  projects    Project[]
+  meetings    Meeting[]
+  tasks       Task[]
+
+  @@index([customerId])
+}
+
+model Contact {
+  id             String      @id @default(uuid())
+  siteId         String
+  name           String
+  role           String?
+  phone          String?
+  email          String?
+  isChampion     Boolean     @default(false)
+  lastContacted  DateTime?
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  site           Site        @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  touchBases     TouchBase[]
+
+  @@index([siteId])
+  @@index([name])
+}
+
+model TouchBase {
+  id                String    @id @default(uuid())
+  contactId         String
+  whereMet          String?
+  notes             String?
+  conversationNotes String?
+  followUpDate      DateTime?
+  done              Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+
+  contact           Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+  @@index([followUpDate])
+  @@index([done])
+}
+
+model Pipeline {
+  id             String    @id @default(uuid())
+  siteId         String
+  description    String
+  value          Decimal   @default(0)
+  status         String    @default("OPEN") // OPEN, CLOSING_SOON, CLOSED_WON, CLOSED_LOST
+  expectedClose  String?   // "Q3 2025", "Q4/Q1"
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  site           Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  project        Project?
+
+  @@index([siteId])
+  @@index([status])
+}
+
+model Project {
+  id            String    @id @default(uuid())
+  siteId        String
+  pipelineId    String?   @unique
+  partner       String?
+  solutionType  String?
+  orderStatus   String    @default("NOT_ORDERED") // NOT_ORDERED, ORDERED, PARTIAL, COMPLETE
+  installStatus String    @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETE
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  site          Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  pipeline      Pipeline? @relation(fields: [pipelineId], references: [id])
+
+  @@index([siteId])
+  @@index([orderStatus])
+  @@index([installStatus])
+}
+
+model Goal {
+  id          String    @id @default(uuid())
+  customerId  String?
+  type        String    // "Quarterly Contacts", "Revenue Target"
+  target      Int
+  actual      Int       @default(0)
+  quarter     String    // "Q3 2025"
+  deadline    DateTime?
+  reflection  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([quarter])
+}
+
+model Meeting {
+  id          String    @id @default(uuid())
+  customerId  String
+  siteId      String?
+  date        DateTime
+  attendees   String?
+  agenda      String?
+  notes       String?
+  outcomes    String?
+  createdAt   DateTime  @default(now())
+
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  site        Site?     @relation(fields: [siteId], references: [id])
+
+  @@index([customerId])
+  @@index([date])
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  customerId  String?
+  siteId      String?
+  description String
+  dueDate     DateTime?
+  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status      String    @default("PENDING") // PENDING, IN_PROGRESS, DONE
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  site        Site?     @relation(fields: [siteId], references: [id])
+
+  @@index([customerId])
+  @@index([dueDate])
+  @@index([status])
+}
+
+model ActivityLog {
+  id          String    @id @default(uuid())
+  customerId  String?
+  entityType  String    // "Contact", "Pipeline", "Project"
+  entityId    String
+  action      String    // "CREATED", "UPDATED", "DELETED"
+  details     String?   // JSON: { before, after, changedFields }
+  createdAt   DateTime  @default(now())
+
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model Document {
+  id          String    @id @default(uuid())
+  customerId  String
+  name        String
+  type        String    @default("LINK") // LINK, UPLOAD, ONENOTE
+  url         String?
+  onenoteLink String?
+  uploadedAt  DateTime  @default(now())
+
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+}
