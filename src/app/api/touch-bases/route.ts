@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { createTouchBaseSchema } from '@/lib/validations/touch-base'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -43,14 +44,15 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await req.json()
-
-    if (!data.contactId) {
+    const body = await req.json()
+    const validation = createTouchBaseSchema.safeParse(body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Contact is required' },
+        { error: 'Validation failed', details: validation.error.errors },
         { status: 400 }
       )
     }
+    const data = validation.data
 
     const touchBase = await prisma.touchBase.create({
       data: {

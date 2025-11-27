@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { updateTouchBaseSchema } from '@/lib/validations/touch-base'
 
 export async function GET(
   req: Request,
@@ -44,7 +45,15 @@ export async function PUT(
   }
 
   try {
-    const data = await req.json()
+    const body = await req.json()
+    const validation = updateTouchBaseSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.errors },
+        { status: 400 }
+      )
+    }
+    const data = validation.data
 
     const touchBase = await prisma.touchBase.update({
       where: { id: params.id },

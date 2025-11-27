@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { createTaskSchema } from '@/lib/validations/task'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -43,14 +44,15 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await req.json()
-
-    if (!data.description || !data.customerId) {
+    const body = await req.json()
+    const validation = createTaskSchema.safeParse(body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Description and customer are required' },
+        { error: 'Validation failed', details: validation.error.errors },
         { status: 400 }
       )
     }
+    const data = validation.data
 
     const task = await prisma.task.create({
       data: {

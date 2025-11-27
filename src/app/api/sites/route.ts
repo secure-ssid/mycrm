@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { createSiteSchema } from '@/lib/validations/site'
 
 export async function GET() {
   try {
@@ -42,14 +43,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const data = await req.json()
-
-    if (!data.name || !data.customerId) {
+    const body = await req.json()
+    const validation = createSiteSchema.safeParse(body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Name and customer are required' },
+        { error: 'Validation failed', details: validation.error.errors },
         { status: 400 }
       )
     }
+    const data = validation.data
 
     const site = await prisma.site.create({
       data: {

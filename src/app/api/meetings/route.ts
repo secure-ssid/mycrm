@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { createMeetingSchema } from '@/lib/validations/meeting'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -39,14 +40,15 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await req.json()
-
-    if (!data.date || !data.customerId) {
+    const body = await req.json()
+    const validation = createMeetingSchema.safeParse(body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Date and customer are required' },
+        { error: 'Validation failed', details: validation.error.errors },
         { status: 400 }
       )
     }
+    const data = validation.data
 
     const meeting = await prisma.meeting.create({
       data: {

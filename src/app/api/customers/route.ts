@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { createCustomerSchema } from '@/lib/validations/customer'
 
 export async function POST(req: Request) {
   try {
@@ -10,14 +11,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, industry, status } = await req.json()
+    const body = await req.json()
+    const validation = createCustomerSchema.safeParse(body)
 
-    if (!name) {
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Customer name is required' },
+        { error: 'Validation failed', details: validation.error.errors },
         { status: 400 }
       )
     }
+
+    const { name, industry, status } = validation.data
 
     const customer = await prisma.customer.create({
       data: {

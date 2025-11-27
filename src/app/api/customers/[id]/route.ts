@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { updateCustomerSchema } from '@/lib/validations/customer'
 
 export async function GET(
   req: Request,
@@ -60,21 +61,22 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, industry, status } = await req.json()
-
-    if (!name) {
+    const body = await req.json()
+    const validation = updateCustomerSchema.safeParse(body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Customer name is required' },
+        { error: 'Validation failed', details: validation.error.errors },
         { status: 400 }
       )
     }
+    const data = validation.data
 
     const customer = await prisma.customer.update({
       where: { id: params.id },
       data: {
-        name,
-        industry: industry || null,
-        status: status || 'ACTIVE',
+        name: data.name,
+        industry: data.industry || null,
+        status: data.status || 'ACTIVE',
       },
     })
 

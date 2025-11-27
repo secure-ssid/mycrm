@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { updatePipelineSchema } from '@/lib/validations/pipeline'
 
 export async function GET(
   req: Request,
@@ -44,7 +45,15 @@ export async function PUT(
   }
 
   try {
-    const data = await req.json()
+    const body = await req.json()
+    const validation = updatePipelineSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.errors },
+        { status: 400 }
+      )
+    }
+    const data = validation.data
 
     const pipeline = await prisma.pipeline.update({
       where: { id: params.id },
