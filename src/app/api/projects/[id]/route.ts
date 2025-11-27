@@ -49,12 +49,12 @@ export async function PUT(
     const project = await prisma.project.update({
       where: { id: params.id },
       data: {
-        name: data.name,
-        description: data.description || null,
-        status: data.status,
-        startDate: data.startDate ? new Date(data.startDate) : null,
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        budget: data.budget || null,
+        partner: data.partner || null,
+        solutionType: data.solutionType || null,
+        orderStatus: data.orderStatus,
+        installStatus: data.installStatus,
+        notes: data.notes || null,
+        pipelineId: data.pipelineId || null,
         siteId: data.siteId,
       },
     })

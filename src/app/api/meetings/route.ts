@@ -41,19 +41,21 @@ export async function POST(req: Request) {
   try {
     const data = await req.json()
 
-    if (!data.title || !data.customerId) {
+    if (!data.date || !data.customerId) {
       return NextResponse.json(
-        { error: 'Title and customer are required' },
+        { error: 'Date and customer are required' },
         { status: 400 }
       )
     }
 
     const meeting = await prisma.meeting.create({
       data: {
-        title: data.title,
         date: new Date(data.date),
-        notes: data.notes || null,
         attendees: data.attendees || null,
+        agenda: data.agenda || null,
+        notes: data.notes || null,
+        outcomes: data.outcomes || null,
+        siteId: data.siteId || null,
         customerId: data.customerId,
       },
     })

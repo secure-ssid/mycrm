@@ -45,20 +45,19 @@ export async function POST(req: Request) {
   try {
     const data = await req.json()
 
-    if (!data.title || !data.customerId) {
+    if (!data.description || !data.customerId) {
       return NextResponse.json(
-        { error: 'Title and customer are required' },
+        { error: 'Description and customer are required' },
         { status: 400 }
       )
     }
 
     const task = await prisma.task.create({
       data: {
-        title: data.title,
-        description: data.description || null,
+        description: data.description,
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
         priority: data.priority || 'MEDIUM',
-        status: data.status || 'TODO',
+        status: data.status || 'PENDING',
         customerId: data.customerId,
       },
     })

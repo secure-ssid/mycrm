@@ -49,10 +49,11 @@ export async function PUT(
     const touchBase = await prisma.touchBase.update({
       where: { id: params.id },
       data: {
-        date: new Date(data.date),
+        whereMet: data.whereMet || null,
         notes: data.notes || null,
-        outcome: data.outcome || null,
-        nextSteps: data.nextSteps || null,
+        conversationNotes: data.conversationNotes || null,
+        followUpDate: data.followUpDate ? new Date(data.followUpDate) : null,
+        done: data.done,
         contactId: data.contactId,
       },
     })

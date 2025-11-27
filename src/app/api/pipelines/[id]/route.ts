@@ -49,10 +49,9 @@ export async function PUT(
     const pipeline = await prisma.pipeline.update({
       where: { id: params.id },
       data: {
-        name: data.name,
-        description: data.description || null,
+        description: data.description,
         value: data.value,
-        probability: data.probability,
+        expectedClose: data.expectedClose || null,
         status: data.status,
         siteId: data.siteId,
       },

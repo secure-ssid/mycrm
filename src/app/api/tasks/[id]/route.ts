@@ -49,8 +49,7 @@ export async function PUT(
     const task = await prisma.task.update({
       where: { id: params.id },
       data: {
-        title: data.title,
-        description: data.description || null,
+        description: data.description,
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
         priority: data.priority,
         status: data.status,

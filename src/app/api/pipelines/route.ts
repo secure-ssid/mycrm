@@ -43,20 +43,19 @@ export async function POST(req: Request) {
   try {
     const data = await req.json()
 
-    if (!data.name || !data.siteId) {
+    if (!data.description || !data.siteId) {
       return NextResponse.json(
-        { error: 'Name and site are required' },
+        { error: 'Description and site are required' },
         { status: 400 }
       )
     }
 
     const pipeline = await prisma.pipeline.create({
       data: {
-        name: data.name,
-        description: data.description || null,
+        description: data.description,
         value: data.value || 0,
-        probability: data.probability || 50,
-        status: data.status || 'PROSPECT',
+        expectedClose: data.expectedClose || null,
+        status: data.status || 'OPEN',
         siteId: data.siteId,
       },
     })

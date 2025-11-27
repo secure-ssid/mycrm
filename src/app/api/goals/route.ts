@@ -41,22 +41,21 @@ export async function POST(req: Request) {
   try {
     const data = await req.json()
 
-    if (!data.title || !data.customerId) {
+    if (!data.type || !data.quarter || !data.customerId) {
       return NextResponse.json(
-        { error: 'Title and customer are required' },
+        { error: 'Type, quarter and customer are required' },
         { status: 400 }
       )
     }
 
     const goal = await prisma.goal.create({
       data: {
-        title: data.title,
-        description: data.description || null,
-        targetValue: data.targetValue || null,
-        currentValue: data.currentValue || 0,
-        metric: data.metric || null,
-        dueDate: data.dueDate ? new Date(data.dueDate) : null,
-        status: data.status || 'ACTIVE',
+        type: data.type,
+        target: data.target || 0,
+        actual: data.actual || 0,
+        quarter: data.quarter,
+        deadline: data.deadline ? new Date(data.deadline) : null,
+        reflection: data.reflection || null,
         customerId: data.customerId,
       },
     })

@@ -48,8 +48,7 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
 
     const formData = new FormData(e.currentTarget)
     const data = {
-      title: formData.get('title') as string,
-      description: formData.get('description') as string || null,
+      description: formData.get('title') as string,
       dueDate: formData.get('dueDate') as string || null,
       priority: formData.get('priority') as string,
       status: formData.get('status') as string,

@@ -43,21 +43,21 @@ export async function POST(req: Request) {
   try {
     const data = await req.json()
 
-    if (!data.name || !data.siteId) {
+    if (!data.siteId) {
       return NextResponse.json(
-        { error: 'Name and site are required' },
+        { error: 'Site is required' },
         { status: 400 }
       )
     }
 
     const project = await prisma.project.create({
       data: {
-        name: data.name,
-        description: data.description || null,
-        status: data.status || 'PLANNING',
-        startDate: data.startDate ? new Date(data.startDate) : null,
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        budget: data.budget || null,
+        partner: data.partner || null,
+        solutionType: data.solutionType || null,
+        orderStatus: data.orderStatus || 'NOT_ORDERED',
+        installStatus: data.installStatus || 'NOT_STARTED',
+        notes: data.notes || null,
+        pipelineId: data.pipelineId || null,
         siteId: data.siteId,
       },
     })

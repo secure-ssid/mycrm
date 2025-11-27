@@ -49,10 +49,12 @@ export async function PUT(
     const meeting = await prisma.meeting.update({
       where: { id: params.id },
       data: {
-        title: data.title,
         date: new Date(data.date),
-        notes: data.notes || null,
         attendees: data.attendees || null,
+        agenda: data.agenda || null,
+        notes: data.notes || null,
+        outcomes: data.outcomes || null,
+        siteId: data.siteId || null,
         customerId: data.customerId,
       },
     })

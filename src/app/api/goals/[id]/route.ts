@@ -49,13 +49,12 @@ export async function PUT(
     const goal = await prisma.goal.update({
       where: { id: params.id },
       data: {
-        title: data.title,
-        description: data.description || null,
-        targetValue: data.targetValue || null,
-        currentValue: data.currentValue,
-        metric: data.metric || null,
-        dueDate: data.dueDate ? new Date(data.dueDate) : null,
-        status: data.status,
+        type: data.type,
+        target: data.target,
+        actual: data.actual,
+        quarter: data.quarter,
+        deadline: data.deadline ? new Date(data.deadline) : null,
+        reflection: data.reflection || null,
         customerId: data.customerId,
       },
     })

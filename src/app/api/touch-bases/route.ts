@@ -54,10 +54,11 @@ export async function POST(req: Request) {
 
     const touchBase = await prisma.touchBase.create({
       data: {
-        date: new Date(data.date),
+        whereMet: data.whereMet || null,
         notes: data.notes || null,
-        outcome: data.outcome || null,
-        nextSteps: data.nextSteps || null,
+        conversationNotes: data.conversationNotes || null,
+        followUpDate: data.followUpDate ? new Date(data.followUpDate) : null,
+        done: data.done || false,
         contactId: data.contactId,
       },
     })
