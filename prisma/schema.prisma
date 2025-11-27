@@ -26,6 +26,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
   sessions      Session[]
+  customers     Customer[]
 }
 
 model Account {
@@ -69,12 +70,14 @@ model VerificationToken {
 
 model Customer {
   id          String    @id @default(uuid())
+  userId      String
   name        String
   industry    String?
   status      String    @default("ACTIVE") // ACTIVE, INACTIVE, PROSPECT, ARCHIVED
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   strategy    Strategy?
   sites       Site[]
   goals       Goal[]
@@ -83,6 +86,7 @@ model Customer {
   documents   Document[]
   activities  ActivityLog[]
 
+  @@index([userId])
   @@index([name])
   @@index([status])
 }
