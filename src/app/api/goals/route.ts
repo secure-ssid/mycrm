@@ -11,6 +11,11 @@ export async function GET() {
 
   try {
     const goals = await prisma.goal.findMany({
+      where: {
+        customer: {
+          userId: session.user.id,
+        },
+      },
       include: {
         customer: true,
       },

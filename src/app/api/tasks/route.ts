@@ -11,6 +11,11 @@ export async function GET() {
 
   try {
     const tasks = await prisma.task.findMany({
+      where: {
+        customer: {
+          userId: session.user.id,
+        },
+      },
       include: {
         customer: true,
       },

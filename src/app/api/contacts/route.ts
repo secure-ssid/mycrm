@@ -11,6 +11,13 @@ export async function GET() {
     }
 
     const contacts = await prisma.contact.findMany({
+      where: {
+        site: {
+          customer: {
+            userId: session.user.id,
+          },
+        },
+      },
       include: {
         site: {
           include: {

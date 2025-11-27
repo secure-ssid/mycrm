@@ -11,6 +11,15 @@ export async function GET() {
 
   try {
     const touchBases = await prisma.touchBase.findMany({
+      where: {
+        contact: {
+          site: {
+            customer: {
+              userId: session.user.id,
+            },
+          },
+        },
+      },
       include: {
         contact: { include: { site: { include: { customer: true } } } },
       },

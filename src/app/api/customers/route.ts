@@ -21,6 +21,7 @@ export async function POST(req: Request) {
 
     const customer = await prisma.customer.create({
       data: {
+        userId: session.user.id,
         name,
         industry: industry || null,
         status: status || 'PROSPECT',
@@ -45,6 +46,7 @@ export async function GET() {
     }
 
     const customers = await prisma.customer.findMany({
+      where: { userId: session.user.id },
       include: {
         sites: {
           include: {

@@ -11,6 +11,13 @@ export async function GET() {
 
   try {
     const pipelines = await prisma.pipeline.findMany({
+      where: {
+        site: {
+          customer: {
+            userId: session.user.id,
+          },
+        },
+      },
       include: {
         site: { include: { customer: true } },
       },
