@@ -1,7 +1,10 @@
+import Link from 'next/link'
 import { prisma } from '@/lib/db'
+import { requireAuth } from '@/lib/auth-utils'
 
-async function getPipelines() {
+async function getPipelines(userId: string) {
   return prisma.pipeline.findMany({
+    where: { site: { customer: { userId } } },
     include: {
       site: {
         include: {
@@ -14,7 +17,8 @@ async function getPipelines() {
 }
 
 export default async function PipelinePage() {
-  const pipelines = await getPipelines()
+  const user = await requireAuth()
+  const pipelines = await getPipelines(user.id)
 
   const grouped = {
     OPEN: pipelines.filter((p) => p.status === 'OPEN'),
@@ -38,7 +42,7 @@ export default async function PipelinePage() {
             Total open value: ${totalValue.toLocaleString()}
           </p>
         </div>
-        <button className="btn-primary btn-md">+ Add Opportunity</button>
+        <Link href="/pipeline/new" className="btn-primary btn-md">+ Add Opportunity</Link>
       </div>
 
       <div className="grid grid-cols-4 gap-4">

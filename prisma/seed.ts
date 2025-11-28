@@ -6,6 +6,29 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Seeding database...')
 
+  // Clear existing demo user data first (makes seed idempotent)
+  const existingUser = await prisma.user.findUnique({
+    where: { email: 'demo@mycrm.com' },
+  })
+
+  if (existingUser) {
+    console.log('🧹 Cleaning existing demo data...')
+    // Delete in correct order due to foreign key constraints
+    await prisma.touchBase.deleteMany({ where: { contact: { site: { customer: { userId: existingUser.id } } } } })
+    await prisma.activityLog.deleteMany({ where: { customer: { userId: existingUser.id } } })
+    await prisma.project.deleteMany({ where: { site: { customer: { userId: existingUser.id } } } })
+    await prisma.pipeline.deleteMany({ where: { site: { customer: { userId: existingUser.id } } } })
+    await prisma.meeting.deleteMany({ where: { customer: { userId: existingUser.id } } })
+    await prisma.task.deleteMany({ where: { customer: { userId: existingUser.id } } })
+    await prisma.goal.deleteMany({ where: { customer: { userId: existingUser.id } } })
+    await prisma.document.deleteMany({ where: { customer: { userId: existingUser.id } } })
+    await prisma.contact.deleteMany({ where: { site: { customer: { userId: existingUser.id } } } })
+    await prisma.strategy.deleteMany({ where: { customer: { userId: existingUser.id } } })
+    await prisma.site.deleteMany({ where: { customer: { userId: existingUser.id } } })
+    await prisma.customer.deleteMany({ where: { userId: existingUser.id } })
+    console.log('✓ Cleared existing demo data')
+  }
+
   // Create a demo user
   const hashedPassword = await hash('demo1234', 12)
   const user = await prisma.user.upsert({

@@ -1,7 +1,10 @@
+import Link from 'next/link'
 import { prisma } from '@/lib/db'
+import { requireAuth } from '@/lib/auth-utils'
 
-async function getGoals() {
+async function getGoals(userId: string) {
   return prisma.goal.findMany({
+    where: { customer: { userId } },
     include: {
       customer: true,
     },
@@ -10,7 +13,8 @@ async function getGoals() {
 }
 
 export default async function GoalsPage() {
-  const goals = await getGoals()
+  const user = await requireAuth()
+  const goals = await getGoals(user.id)
 
   const currentQuarter = 'Q4 2025' // TODO: Calculate dynamically
   const currentGoals = goals.filter((g) => g.quarter === currentQuarter)
@@ -26,7 +30,7 @@ export default async function GoalsPage() {
             Track quarterly targets and progress
           </p>
         </div>
-        <button className="btn-primary btn-md">+ Add Goal</button>
+        <Link href="/goals/new" className="btn-primary btn-md">+ Add Goal</Link>
       </div>
 
       {/* Current Quarter Summary */}

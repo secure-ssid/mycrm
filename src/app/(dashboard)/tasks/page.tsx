@@ -1,8 +1,11 @@
+import Link from 'next/link'
 import { prisma } from '@/lib/db'
+import { requireAuth } from '@/lib/auth-utils'
 import { format } from 'date-fns'
 
-async function getTasks() {
+async function getTasks(userId: string) {
   return prisma.task.findMany({
+    where: { customer: { userId } },
     include: {
       customer: true,
       site: true,
@@ -12,7 +15,8 @@ async function getTasks() {
 }
 
 export default async function TasksPage() {
-  const tasks = await getTasks()
+  const user = await requireAuth()
+  const tasks = await getTasks(user.id)
 
   const pending = tasks.filter((t) => t.status === 'PENDING')
   const inProgress = tasks.filter((t) => t.status === 'IN_PROGRESS')
@@ -29,7 +33,7 @@ export default async function TasksPage() {
             {pending.length + inProgress.length} open tasks
           </p>
         </div>
-        <button className="btn-primary btn-md">+ Add Task</button>
+        <Link href="/tasks/new" className="btn-primary btn-md">+ Add Task</Link>
       </div>
 
       <div className="grid grid-cols-3 gap-6">
