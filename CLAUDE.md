@@ -110,6 +110,40 @@ import { CustomerStatus, PipelineStatus, TaskPriority } from '@/lib/types'
 - Email: demo@mycrm.com
 - Password: demo1234
 
+## Security Patterns
+
+All dashboard pages and API routes must filter data by `userId` to ensure proper data isolation:
+
+```typescript
+// In Server Components - use requireAuth()
+import { requireAuth } from '@/lib/auth-utils'
+
+export default async function Page() {
+  const user = await requireAuth()
+  const data = await prisma.customer.findMany({
+    where: { userId: user.id }
+  })
+}
+
+// For nested relations (e.g., Pipeline belongs to Site belongs to Customer)
+const pipelines = await prisma.pipeline.findMany({
+  where: { site: { customer: { userId: user.id } } }
+})
+
+// In API routes - use getServerSession()
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+
+export async function GET() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  const userId = session.user.id
+  // ... filter queries by userId
+}
+```
+
 ## Key Files
 
 ### Auth
@@ -121,6 +155,19 @@ import { CustomerStatus, PipelineStatus, TaskPriority } from '@/lib/types'
 - `src/components/layout/sidebar.tsx` - Navigation sidebar
 - `src/components/layout/header.tsx` - Top header with search and user menu
 - `src/app/(dashboard)/layout.tsx` - Protected dashboard wrapper
+
+### Dashboard
+- `src/app/(dashboard)/page.tsx` - Home dashboard with stats, tasks, follow-ups
+- `src/app/(dashboard)/reports/page.tsx` - Reports with charts and analytics
+
+### Charts
+- `src/components/charts/pipeline-charts.tsx` - Recharts components (PipelineFunnelChart, PipelineDistributionChart, GoalProgressChart)
+
+### API Routes
+- `src/app/api/reports/export/route.ts` - CSV export with sanitization
+- `src/app/api/customers/route.ts` - Customer CRUD
+- `src/app/api/pipelines/route.ts` - Pipeline CRUD
+- `src/app/api/tasks/route.ts` - Task CRUD
 
 ### UI Components
 - `src/components/ui/button.tsx` - Button variants (primary, secondary, danger, ghost)
@@ -136,3 +183,4 @@ See `/plans/account-planning-crm-mvp.md` for the full 3-week implementation plan
 
 - **Day 1**: Project setup, Prisma schema, seed data
 - **Day 2**: Auth, dashboard shell, all page stubs
+- **Day 3**: Dashboard home page, Recharts visualizations, CSV export, userId security fixes across all pages
